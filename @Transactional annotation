@@ -13,3 +13,36 @@ In proxy mode (which is the default), only external method calls coming in throu
 Make sure that all related beans are configured in ApplicationContext!!!!
 
 Propagation.Required attribute is default, meaning the same transaction will be used for underlying transactions.
+
+In place of @Transactional annotation, we can directly use jdbc way:
+```java
+public boolean testTest() {
+		
+		boolean respUpdate = false, respInsert = false;
+		
+		Connection conn = DataSourceUtils.getConnection(getJdbcTemplate().getDataSource());
+		
+		try {
+
+			conn.setAutoCommit(false);
+			PreparedStatement stmtUpdate = conn.prepareStatement(UPDATE_TEST);
+			respUpdate = stmtUpdate.execute();
+			
+			PreparedStatement stmtInsert = conn.prepareStatement(INSERT_TEST);
+			respInsert = stmtInsert.execute();
+			
+			conn.commit();
+			
+			conn.setAutoCommit(true);
+			
+		} catch (SQLException e) {
+			try {
+				conn.rollback();
+			} catch (SQLException e1) {
+				
+			}
+		}
+		
+		return respUpdate && respInsert;
+	}
+  ```
